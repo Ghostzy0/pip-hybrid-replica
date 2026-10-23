@@ -272,8 +272,8 @@
     },
     {
       "path": ".github/workflows/source-checks.yml",
-      "bytes": 2088,
-      "sha256": "873fdde7996820445c7ee3b27017d23790e91bbd4f90c309449ce162b1655dcb"
+      "bytes": 2137,
+      "sha256": "0e99019df11a5ee9bf171f8525a0b6307590d8e5cb824d0a7afdff5559c8adca"
     },
     {
       "path": ".gitignore",
@@ -572,8 +572,8 @@
     },
     {
       "path": "docs/TESTING.md",
-      "bytes": 2331,
-      "sha256": "a96c3c700869a80b210d117f9e672c3276edbaa14480cd5698d8a4172361e391"
+      "bytes": 3139,
+      "sha256": "ac14d16fadd254105d4ca67721c81cbdf57b4eea671924180756bcd79e3cbdc2"
     },
     {
       "path": "docs/engineering/mac-model-catalogue.json",
