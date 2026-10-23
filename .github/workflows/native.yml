@@ -1,0 +1,23 @@
+name: Neutral baseline
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: native-baseline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  baseline:
+    # Never run against a private repository or spend private-runner allowance.
+    if: github.event.repository.private == false
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Neutral baseline fixtures
+        run: swift test --package-path apps/mac --scratch-path apps/mac/.build-baseline-ci --jobs 4 -Xswiftc -DBASELINE_EDITION
+      - name: Build and verify local ad-hoc baseline
+        run: ./scripts/build-mac.sh baseline

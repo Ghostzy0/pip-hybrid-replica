@@ -1,0 +1,46 @@
+name: Source checks
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: source-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Build script syntax
+        run: |
+          sh -n scripts/build-mac.sh
+          sh -n scripts/build-mac-shared.sh
+      - name: Runtime preparation syntax
+        run: python3 -m py_compile scripts/prepare-mac-runtime.py
+      - name: Export manifest and shared-core integrity
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root = pathlib.Path('.')
+          manifest = json.loads((root / 'EXPORT-MANIFEST.json').read_text())
+          listed = [item['path'] for item in manifest['files']]
+          assert len(listed) == len(set(listed)), 'Duplicate manifest paths'
+          tracked = set(subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')) - {''}
+          assert tracked == set(listed) | {'EXPORT-MANIFEST.json'}, 'Unmanifested or missing tracked files'
+          for item in manifest['files']:
+              relative = pathlib.PurePosixPath(item['path'])
+              assert not relative.is_absolute() and '..' not in relative.parts
+              path = root / relative
+              assert path.is_file() and not path.is_symlink(), item['path']
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == item['sha256'], item['path']
+          shared = manifest['sharedCoreFiles']
+          encoded = json.dumps(shared, sort_keys=True, separators=(',', ':')).encode()
+          assert hashlib.sha256(encoded).hexdigest() == manifest['sharedCoreManifestSha256']
+          for item in shared:
+              path = root / item['path']
+              assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == item['sha256']
+          print('Replica export manifest and shared-core integrity passed; no native behavior was tested.')
+          PY

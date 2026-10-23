@@ -1,0 +1,13 @@
+# Perplexity Hybrid Compute for Mac workflow experiment
+
+Experimental, original Mac source for a partial local-model and reviewed-cloud workflow. This is not Perplexity software, a faithful 1:1 recreation, or an affiliated project. Only the neutral baseline is exposed by this repository's build wrapper.
+
+- [Overview](https://github.com/Ghostzy0/pip-hybrid-replica)
+- [Observed parity and gaps](https://github.com/Ghostzy0/pip-hybrid-replica/blob/main/docs/PARITY.md)
+- [Build and platform requirements](https://github.com/Ghostzy0/pip-hybrid-replica/blob/main/docs/EDITIONS.md)
+- [Privacy boundaries](https://github.com/Ghostzy0/pip-hybrid-replica/blob/main/docs/PRIVACY.md)
+- [Testing limits](https://github.com/Ghostzy0/pip-hybrid-replica/blob/main/docs/TESTING.md)
+- [Shared source provenance](https://github.com/Ghostzy0/pip-hybrid-replica/blob/main/docs/SHARED-CORE.md)
+- [FAQ](https://github.com/Ghostzy0/pip-hybrid-replica/blob/main/docs/FAQ.md)
+
+No release binary, model permission, performance ranking, or security certification is implied.

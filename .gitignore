@@ -1,0 +1,15 @@
+.DS_Store
+apps/mac/.build/
+apps/mac/.build-*/
+apps/mac/.runtime/
+apps/mac/.swiftpm/
+dist/
+.local-evidence/
+*.gguf
+*.partial
+__pycache__/
+*.pyc
+.env
+.env.*
+*.pem
+*.key
