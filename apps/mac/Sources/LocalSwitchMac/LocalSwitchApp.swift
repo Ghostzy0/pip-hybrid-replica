@@ -56,8 +56,22 @@ struct LocalSwitchApp: App {
 
 @MainActor final class SwitchAppDelegate: NSObject, NSApplicationDelegate {
   static var model: AppModel?
+  func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    guard let model = Self.model else { return .terminateNow }
+    guard model.prepareForTermination() else { return .terminateCancel }
+    model.completeTerminationAfterCheckpoint()
+    return .terminateNow
+  }
+  func handleWindowClose() -> Bool {
+    guard let model = Self.model else { return true }
+    guard model.prepareForTermination() else { return false }
+    if shouldTerminateAfterLastWindowClosed {
+      model.completeTerminationAfterCheckpoint()
+    }
+    return true
+  }
   func applicationWillTerminate(_ notification: Notification) {
-    Self.model?.shutdown()
+    Self.model?.finishProcessTermination()
     if ProcessInfo.processInfo.arguments.contains("--qa-output") {
       UserDefaults.standard.removePersistentDomain(
         forName: PipAppIdentity.bundleIdentifier
@@ -65,6 +79,10 @@ struct LocalSwitchApp: App {
     }
   }
   func applicationDidFinishLaunching(_ notification: Notification) {
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(mainWindowBecameMain(_:)),
+      name: NSWindow.didBecomeMainNotification, object: nil)
+    DispatchQueue.main.async { [weak self] in self?.installCloseGuards(on: NSApp.windows) }
     let args = ProcessInfo.processInfo.arguments
     if PipMotionQA.startIfRequested(arguments: args) { return }
     if let iconIndex = args.firstIndex(of: "--qa-icon"), args.indices.contains(iconIndex + 1) {
@@ -141,6 +159,62 @@ struct LocalSwitchApp: App {
     }
   }
   func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    shouldTerminateAfterLastWindowClosed
+  }
+  private var shouldTerminateAfterLastWindowClosed: Bool {
     !PipMotionQA.isRequested(ProcessInfo.processInfo.arguments)
+  }
+
+  @objc private func mainWindowBecameMain(_ notification: Notification) {
+    guard let window = notification.object as? NSWindow else { return }
+    installCloseGuards(on: [window])
+    DispatchQueue.main.async { [weak self, weak window] in
+      guard let self, let window else { return }
+      self.installCloseGuards(on: [window])
+    }
+  }
+
+  private var closeGuardDelegates: [ObjectIdentifier: CloseGuardWindowDelegate] = [:]
+
+  private func installCloseGuards(on windows: [NSWindow]) {
+    for window in windows where
+      window.identifier?.rawValue == "main" || window.title == PipAppIdentity.displayName
+    {
+      let key = ObjectIdentifier(window)
+      if let proxy = closeGuardDelegates[key] {
+        if window.delegate !== proxy {
+          proxy.downstream = window.delegate
+          window.delegate = proxy
+        }
+        continue
+      }
+      let proxy = CloseGuardWindowDelegate(owner: self, downstream: window.delegate)
+      closeGuardDelegates[key] = proxy
+      window.delegate = proxy
+    }
+  }
+}
+
+@MainActor private final class CloseGuardWindowDelegate: NSObject, NSWindowDelegate {
+  weak var owner: SwitchAppDelegate?
+  weak var downstream: (any NSWindowDelegate)?
+
+  init(owner: SwitchAppDelegate, downstream: (any NSWindowDelegate)?) {
+    self.owner = owner
+    self.downstream = downstream
+  }
+
+  func windowShouldClose(_ sender: NSWindow) -> Bool {
+    if let downstream, downstream.windowShouldClose?(sender) == false { return false }
+    return owner?.handleWindowClose() ?? true
+  }
+
+  override func responds(to selector: Selector!) -> Bool {
+    super.responds(to: selector) || downstream?.responds(to: selector) == true
+  }
+
+  override func forwardingTarget(for selector: Selector!) -> Any? {
+    if let downstream, downstream.responds(to: selector) { return downstream }
+    return super.forwardingTarget(for: selector)
   }
 }

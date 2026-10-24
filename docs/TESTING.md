@@ -8,6 +8,12 @@ The exact repository root `7fe8d2159e7299167b418e5d0e7e8b6d800a0e79` was cloned 
 
 These are source/package checks for that exact snapshot. Later documentation-only changes do not imply a new native acceptance. No Perplexity task parity, owner-Keychain, live-provider, accessibility or public-binary acceptance follows from them.
 
+## Shared-source refresh candidate — 24 October 2026
+
+The exporter pins the independently reviewed public custom-source candidate `Ghostzy0/pip-hybrid@c1c2e226a841d9767dd837a21e1975ecfed35fbc`. Its export manifest contains 77 files (manifest SHA-256 `9f048946608d3693f6ec08ad5f69775d894bca7adc99fa7b3ef935a4dfa48ac5`). The generated replica records a path-identical, hash-bound shared subset of 47 files: 41 source/test files match the corresponding internal `84cdf43` snapshot byte-for-byte, plus six package, licence, catalogue and build-support files. Its shared-subset manifest SHA-256 is `d1c95d777c7b60a89091a18e8b9cae5268fff1d5855bf04d2e9e81f840c4ce82`. The former 48th entry, `scripts/build-mac-shared.sh`, is verified separately as a byte-identical renamed copy of the pinned custom source's `scripts/build-mac.sh` (SHA-256 `fee9d930998c70c71d44a7c9c73704595c5d4d56441e36ca5bcb9f70a14ad41c`); it remains covered by the full replica export manifest. The neutral replica remains partial and does not inherit custom-edition acceptance.
+
+A separate local run on the custom Pip Plus candidate recorded 109 passing tests (84 Core, 25 Mac) and built an ad-hoc local package and the current Smoke executable. The merged custom-source candidate passed hosted tests and package workflows for all four variants (109 tests each), runs `40119565332` and `40119671624`. These results are limited to those custom-source inputs and do not qualify the replica. On the prepared replica candidate based on `main` at `dc39561e7ecb996968097ac8bafff080bedcc2b0`, its independent review, baseline CI, package and native evidence are still pending. Do not infer model inference, Keychain/provider, UI/accessibility, or complete Perplexity workflow acceptance from source hashes or another edition's tests.
+
 ## Reproducible neutral checks
 
 On an Apple Silicon Mac with full Xcode selected:

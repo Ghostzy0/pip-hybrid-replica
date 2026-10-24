@@ -1,9 +1,60 @@
-import LocalSwitchCore
+import Darwin
+@testable import LocalSwitchCore
 import XCTest
 
 @testable import LocalSwitchMac
 
 @MainActor final class AppModelTests: XCTestCase {
+  func testExplicitChatGPTModelPreferenceSurvivesAppModelReload() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+      .resolvingSymlinksInPath()
+    let suite = "LocalSwitch-model-choice-" + UUID().uuidString
+    let prefs = UserDefaults(suiteName: suite)!
+    defer {
+      try? FileManager.default.removeItem(at: root)
+      prefs.removePersistentDomain(forName: suite)
+    }
+    prefs.set("synthetic-remembered-model", forKey: "selectedChatGPTModel")
+    let first = AppModel(
+      root: root.appendingPathComponent("Models"), preferences: prefs,
+      historySecrets: AppMemorySecrets(), chatGPTSecrets: AppMemorySecrets())
+    XCTAssertEqual(first.selectedChatGPTModel, "synthetic-remembered-model")
+
+    first.selectedChatGPTModel = "synthetic-explicit-choice"
+    XCTAssertEqual(prefs.string(forKey: "selectedChatGPTModel"), "synthetic-explicit-choice")
+    first.shutdown()
+
+    let reopened = AppModel(
+      root: root.appendingPathComponent("Models"), preferences: prefs,
+      historySecrets: AppMemorySecrets(), chatGPTSecrets: AppMemorySecrets())
+    XCTAssertEqual(reopened.selectedChatGPTModel, "synthetic-explicit-choice")
+    reopened.shutdown()
+  }
+
+  func testChatGPTModelResolutionUsesRememberedThenListedLunaThenFirst() {
+    let catalogue = [
+      ChatGPTModel(slug: "synthetic-first", displayName: "First listed"),
+      ChatGPTModel(slug: "synthetic-luna", displayName: "Luna"),
+      ChatGPTModel(slug: "synthetic-third", displayName: "Third listed"),
+    ]
+    XCTAssertEqual(
+      AppModel.resolveChatGPTModel(catalogue, remembered: "synthetic-third"),
+      "synthetic-third")
+    XCTAssertEqual(
+      AppModel.resolveChatGPTModel(
+        [catalogue[0], catalogue[2]], remembered: "no-longer-listed"),
+      "synthetic-first")
+    XCTAssertEqual(
+      AppModel.resolveChatGPTModel([catalogue[0], catalogue[1]], remembered: "synthetic-third"),
+      "synthetic-luna")
+    XCTAssertEqual(
+      AppModel.resolveChatGPTModel(catalogue, remembered: "synthetic-third"),
+      "synthetic-third")
+    XCTAssertEqual(AppModel.resolveChatGPTModel([], remembered: "synthetic-remembered"),
+      "synthetic-remembered")
+    XCTAssertEqual(AppModel.resolveChatGPTModel([], remembered: nil), "")
+  }
+
   func testDraftSurvivesNewChatAndCurrentHistorySelection() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
       .resolvingSymlinksInPath()
@@ -248,6 +299,109 @@ import XCTest
     app.shutdown()
     XCTAssertTrue(
       try ChatStore(root: root.appendingPathComponent("History"), secrets: secrets).load().isEmpty)
+  }
+
+  func testFailedFinalCheckpointCancelsQuitAndRetryRecoversLatestDraft() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+      .resolvingSymlinksInPath()
+    let suite = "LocalSwitch-test-" + UUID().uuidString
+    let prefs = UserDefaults(suiteName: suite)!
+    defer {
+      try? FileManager.default.removeItem(at: root)
+      prefs.removePersistentDomain(forName: suite)
+    }
+    let secrets = AppMemorySecrets()
+    let app = AppModel(
+      root: root.appendingPathComponent("Models"), preferences: prefs, historySecrets: secrets,
+      chatGPTSecrets: AppMemorySecrets())
+    app.draft = "Latest in-memory draft after the last checkpoint"
+
+    let lockPath = root.appendingPathComponent("History/.history.lock").path
+    let lockFD = Darwin.open(lockPath, O_RDWR | O_CLOEXEC)
+    XCTAssertGreaterThanOrEqual(lockFD, 0)
+    defer { Darwin.close(lockFD) }
+    XCTAssertEqual(flock(lockFD, LOCK_EX | LOCK_NB), 0)
+
+    XCTAssertFalse(app.prepareForTermination())
+    XCTAssertEqual(app.draft, "Latest in-memory draft after the last checkpoint")
+    XCTAssertTrue(app.error?.contains("Quit was canceled") == true)
+    XCTAssertFalse(app.historyAvailable)
+
+    XCTAssertEqual(flock(lockFD, LOCK_UN), 0)
+    XCTAssertTrue(app.prepareForTermination())
+    XCTAssertTrue(app.historyAvailable)
+    app.shutdown()
+
+    let reopened = AppModel(
+      root: root.appendingPathComponent("Models"), preferences: prefs, historySecrets: secrets,
+      chatGPTSecrets: AppMemorySecrets())
+    XCTAssertEqual(reopened.conversations.first?.draft,
+      "Latest in-memory draft after the last checkpoint")
+    reopened.shutdown()
+  }
+
+  func testWindowCloseVetoesChangedDraftOnLockAndSuccessfulRetryStopsOwnedWorkOnce() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+      .resolvingSymlinksInPath()
+    let suite = "LocalSwitch-test-" + UUID().uuidString
+    let prefs = UserDefaults(suiteName: suite)!
+    let previousModel = SwitchAppDelegate.model
+    defer {
+      SwitchAppDelegate.model = previousModel
+      try? FileManager.default.removeItem(at: root)
+      prefs.removePersistentDomain(forName: suite)
+    }
+    let secrets = AppMemorySecrets()
+    let app = AppModel(
+      root: root.appendingPathComponent("Models"), preferences: prefs, historySecrets: secrets,
+      chatGPTSecrets: AppMemorySecrets())
+    SwitchAppDelegate.model = app
+    app.draft = "Earlier checkpoint"
+    XCTAssertTrue(app.prepareForTermination())
+
+    // A draft can change after preflight; a contended final write must still veto close.
+    app.draft = "Latest draft after preflight"
+    let lockPath = root.appendingPathComponent("History/.history.lock").path
+    let lockFD = Darwin.open(lockPath, O_RDWR | O_CLOEXEC)
+    XCTAssertGreaterThanOrEqual(lockFD, 0)
+    defer { Darwin.close(lockFD) }
+    XCTAssertEqual(flock(lockFD, LOCK_EX | LOCK_NB), 0)
+    let delegate = SwitchAppDelegate()
+    XCTAssertFalse(delegate.handleWindowClose())
+    XCTAssertFalse(app.didCompleteShutdownForTesting)
+    XCTAssertEqual(app.draft, "Latest draft after preflight")
+    XCTAssertTrue(app.error?.contains("Quit was canceled") == true)
+
+    XCTAssertEqual(flock(lockFD, LOCK_UN), 0)
+    XCTAssertTrue(delegate.handleWindowClose())
+    XCTAssertTrue(app.didCompleteShutdownForTesting)
+    app.draft = "Post shutdown mutation must not checkpoint"
+    app.shutdown()
+
+    let loaded = try ChatStore(root: root.appendingPathComponent("History"), secrets: secrets).load()
+    XCTAssertEqual(loaded.first?.draft, "Latest draft after preflight")
+  }
+
+  func testUnvetoableFinalNotificationStopsOwnedWorkAfterFailedCheckpoint() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+      .resolvingSymlinksInPath()
+    defer { try? FileManager.default.removeItem(at: root) }
+    let app = AppModel(
+      root: root.appendingPathComponent("Models"), historySecrets: AppMemorySecrets(),
+      chatGPTSecrets: AppMemorySecrets())
+    app.draft = "Keep visible until the process exits"
+    let lockFD = Darwin.open(
+      root.appendingPathComponent("History/.history.lock").path, O_RDWR | O_CLOEXEC)
+    XCTAssertGreaterThanOrEqual(lockFD, 0)
+    defer { Darwin.close(lockFD) }
+    XCTAssertEqual(flock(lockFD, LOCK_EX | LOCK_NB), 0)
+
+    XCTAssertFalse(app.prepareForTermination())
+    XCTAssertFalse(app.didCompleteShutdownForTesting)
+    XCTAssertEqual(app.draft, "Keep visible until the process exits")
+    app.finishProcessTermination()
+    XCTAssertTrue(app.didCompleteShutdownForTesting)
+    XCTAssertEqual(app.draft, "Keep visible until the process exits")
   }
 }
 

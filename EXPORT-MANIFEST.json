@@ -3,9 +3,9 @@
   "intendedRepository": "Ghostzy0/pip-hybrid-replica",
   "scope": "One neutral baseline source export; experimental partial behavioral implementation; no faithful 1:1, build, runtime, or release acceptance implied.",
   "sharedCoreSourceRepository": "Ghostzy0/pip-hybrid",
-  "sharedCoreSourceCommit": "c4d4d318789bd9d6962d17098fde63779a78163e",
-  "customSourceExportManifestSha256": "7475ab7442b7f6a971e8951f773cf59d60423cc2fe346c4e31ad5aae4c603be1",
-  "sharedCoreManifestSha256": "c22dd3f1953f0270962bde98f10cd42088542b42f91df00b7ca190e262e08290",
+  "sharedCoreSourceCommit": "c1c2e226a841d9767dd837a21e1975ecfed35fbc",
+  "customSourceExportManifestSha256": "9f048946608d3693f6ec08ad5f69775d894bca7adc99fa7b3ef935a4dfa48ac5",
+  "sharedCoreManifestSha256": "d1c95d777c7b60a89091a18e8b9cae5268fff1d5855bf04d2e9e81f840c4ce82",
   "sharedCoreFiles": [
     {
       "path": "LICENSE",
@@ -84,8 +84,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchCore/SecretStore.swift",
-      "bytes": 5506,
-      "sha256": "5c17e40eb4429d1f52557b8649654dea84adf8c98149190d32d4103a27d307c2"
+      "bytes": 9634,
+      "sha256": "a56add3d2c222172cfb13ce001e506844668a5a4b3860a1d69dfed2f0dbb0cb4"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchCore/SensitiveInfo.swift",
@@ -94,8 +94,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/AppModel.swift",
-      "bytes": 31074,
-      "sha256": "9000bc1dcde933a0cbb396f6ea17d61e5664d7cd8c04dfe5fbf0131c3a518a96"
+      "bytes": 35657,
+      "sha256": "4415beb234276332106a0116854ac16d63eb25aec82c130ea9650f04470b9ca6"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/ChatGPTAccountsView.swift",
@@ -119,8 +119,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/LocalSwitchApp.swift",
-      "bytes": 6565,
-      "sha256": "623343bec01625cf7d7b47587b280ae6440039d5ce3339d4acb35a7438e0168f"
+      "bytes": 9391,
+      "sha256": "ef02b0c24b892744865eeb8d2c143a49c11bc28f0565384e8702d6f062af348b"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/ModelLibraryView.swift",
@@ -174,8 +174,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchSmoke/Smoke.swift",
-      "bytes": 5520,
-      "sha256": "ebc8fc340626588ff4a18b76f0ffc0565e9505198acc2f5561921f2340ac21da"
+      "bytes": 13997,
+      "sha256": "bdfe80ec9b8a1268037c236a022819c396037170088afbf2348d06e36514ea6a"
     },
     {
       "path": "apps/mac/Tests/LocalSwitchCoreTests/AppIdentityTests.swift",
@@ -214,8 +214,8 @@
     },
     {
       "path": "apps/mac/Tests/LocalSwitchCoreTests/SecretStorePolicyTests.swift",
-      "bytes": 4784,
-      "sha256": "414e46ad3bd27de6c7298fdc982de958c60ec312941c06e1c9e10a022e128e71"
+      "bytes": 9911,
+      "sha256": "ae4fa4ebe5364e081742af708e378dfb501c8084c1e663b1eefd77e47197930b"
     },
     {
       "path": "apps/mac/Tests/LocalSwitchCoreTests/SensitiveInfoTests.swift",
@@ -224,8 +224,8 @@
     },
     {
       "path": "apps/mac/Tests/LocalSwitchMacTests/AppModelTests.swift",
-      "bytes": 11408,
-      "sha256": "4b385e27d7ce5833c260410d9fd9ad9d6264c5e9d2a841b88c2dbf0788dbe8d2"
+      "bytes": 18405,
+      "sha256": "c6627d109d6d97319a032b3e71bcba1e8115d26cbc0e337abc99cef85e7adf83"
     },
     {
       "path": "apps/mac/Tests/LocalSwitchMacTests/CloudReviewTests.swift",
@@ -236,12 +236,6 @@
       "path": "docs/engineering/mac-model-catalogue.json",
       "bytes": 12159,
       "sha256": "a0ee877058d625731dafa323982242fab031cfd20f6e4cc96dfdb17059485f57"
-    },
-    {
-      "path": "scripts/build-mac-shared.sh",
-      "bytes": 5161,
-      "sha256": "fee9d930998c70c71d44a7c9c73704595c5d4d56441e36ca5bcb9f70a14ad41c",
-      "sourcePath": "scripts/build-mac.sh"
     },
     {
       "path": "scripts/prepare-mac-runtime.py",
@@ -282,8 +276,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "bytes": 511,
-      "sha256": "aeb6b3dd2e02d113f28e00b70d48f9a03e555726f45cdc3f96d798e9fb8bd162"
+      "bytes": 1578,
+      "sha256": "4c0aff50ba3b597fc0fd21136b5869bf6429760cca0aeb9d65cae86383c634b3"
     },
     {
       "path": "CONTRIBUTING.md",
@@ -382,8 +376,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchCore/SecretStore.swift",
-      "bytes": 5506,
-      "sha256": "5c17e40eb4429d1f52557b8649654dea84adf8c98149190d32d4103a27d307c2"
+      "bytes": 9634,
+      "sha256": "a56add3d2c222172cfb13ce001e506844668a5a4b3860a1d69dfed2f0dbb0cb4"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchCore/SensitiveInfo.swift",
@@ -392,8 +386,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/AppModel.swift",
-      "bytes": 31074,
-      "sha256": "9000bc1dcde933a0cbb396f6ea17d61e5664d7cd8c04dfe5fbf0131c3a518a96"
+      "bytes": 35657,
+      "sha256": "4415beb234276332106a0116854ac16d63eb25aec82c130ea9650f04470b9ca6"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/ChatGPTAccountsView.swift",
@@ -417,8 +411,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/LocalSwitchApp.swift",
-      "bytes": 6565,
-      "sha256": "623343bec01625cf7d7b47587b280ae6440039d5ce3339d4acb35a7438e0168f"
+      "bytes": 9391,
+      "sha256": "ef02b0c24b892744865eeb8d2c143a49c11bc28f0565384e8702d6f062af348b"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/ModelLibraryView.swift",
@@ -472,8 +466,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchSmoke/Smoke.swift",
-      "bytes": 5520,
-      "sha256": "ebc8fc340626588ff4a18b76f0ffc0565e9505198acc2f5561921f2340ac21da"
+      "bytes": 13997,
+      "sha256": "bdfe80ec9b8a1268037c236a022819c396037170088afbf2348d06e36514ea6a"
     },
     {
       "path": "apps/mac/Tests/LocalSwitchCoreTests/AppIdentityTests.swift",
@@ -512,8 +506,8 @@
     },
     {
       "path": "apps/mac/Tests/LocalSwitchCoreTests/SecretStorePolicyTests.swift",
-      "bytes": 4784,
-      "sha256": "414e46ad3bd27de6c7298fdc982de958c60ec312941c06e1c9e10a022e128e71"
+      "bytes": 9911,
+      "sha256": "ae4fa4ebe5364e081742af708e378dfb501c8084c1e663b1eefd77e47197930b"
     },
     {
       "path": "apps/mac/Tests/LocalSwitchCoreTests/SensitiveInfoTests.swift",
@@ -522,8 +516,8 @@
     },
     {
       "path": "apps/mac/Tests/LocalSwitchMacTests/AppModelTests.swift",
-      "bytes": 11408,
-      "sha256": "4b385e27d7ce5833c260410d9fd9ad9d6264c5e9d2a841b88c2dbf0788dbe8d2"
+      "bytes": 18405,
+      "sha256": "c6627d109d6d97319a032b3e71bcba1e8115d26cbc0e337abc99cef85e7adf83"
     },
     {
       "path": "apps/mac/Tests/LocalSwitchMacTests/CloudReviewTests.swift",
@@ -567,13 +561,13 @@
     },
     {
       "path": "docs/SHARED-CORE.md",
-      "bytes": 7006,
-      "sha256": "52c54870a1958fb6f6cb244861c1194f510fd939f5a8301682702f77dc9c12e9"
+      "bytes": 7216,
+      "sha256": "8d7fc8d5a199407addd645dbf62186b21eb67a365901b926a7b7bc0a8a4a2e1a"
     },
     {
       "path": "docs/TESTING.md",
-      "bytes": 3139,
-      "sha256": "ac14d16fadd254105d4ca67721c81cbdf57b4eea671924180756bcd79e3cbdc2"
+      "bytes": 4933,
+      "sha256": "c788065b8c8e1b649c622a22e925b007ade5b34512b9d19ab5e406699e78b4b5"
     },
     {
       "path": "docs/engineering/mac-model-catalogue.json",
