@@ -28,7 +28,18 @@ enum ChatGPTManagementOperation: String {
   private var chatGPTManagementID = UUID()
   var isManagingChatGPT: Bool { chatGPTManagementOperation != nil }
   @Published var cloudMode = false { didSet { pendingCloudReview = nil } }
-  @Published var selectedChatGPTModel = "" { didSet { pendingCloudReview = nil } }
+  @Published var selectedChatGPTModel = "" {
+    didSet {
+      pendingCloudReview = nil
+      guard !reconcilingChatGPTModelSelection else { return }
+      rememberedChatGPTModel = selectedChatGPTModel.isEmpty ? nil : selectedChatGPTModel
+      if let rememberedChatGPTModel {
+        preferences.set(rememberedChatGPTModel, forKey: Self.chatGPTModelPreferenceKey)
+      } else {
+        preferences.removeObject(forKey: Self.chatGPTModelPreferenceKey)
+      }
+    }
+  }
   @Published var pendingCloudReview: CloudReview? {
     didSet { if pendingCloudReview != nil { chatGPTWelcome = false } }
   }
@@ -49,9 +60,13 @@ enum ChatGPTManagementOperation: String {
   @Published var selectedModelID: String {
     didSet { preferences.set(selectedModelID, forKey: "selectedModelID") }
   }
-  @Published var messages: [ChatMessage] = [] { didSet { pendingCloudReview = nil } }
-  @Published var conversations: [SavedConversation] = []
-  @Published var draft = "" { didSet { pendingCloudReview = nil } }
+  @Published var messages: [ChatMessage] = [] {
+    didSet { pendingCloudReview = nil; terminationCheckpointPrepared = false }
+  }
+  @Published var conversations: [SavedConversation] = [] {
+    didSet { terminationCheckpointPrepared = false }
+  }
+  @Published var draft = "" { didSet { pendingCloudReview = nil; terminationCheckpointPrepared = false } }
   @Published var composerFocusRequest = UUID()
   @Published var error: String?
   @Published private(set) var historyAvailable = false
@@ -69,9 +84,15 @@ enum ChatGPTManagementOperation: String {
   private var operation: Task<Void, Never>?
   private var observers = Set<AnyCancellable>()
   private let preferences: UserDefaults
+  private static let chatGPTModelPreferenceKey = "selectedChatGPTModel"
+  private var rememberedChatGPTModel: String?
+  private var reconcilingChatGPTModelSelection = false
   private var historySecrets: any SecretStore
   private var storageAvailable = true
   private var stopping = false
+  private var failedHistoryCheckpoint = false
+  private var terminationCheckpointPrepared = false
+  private var shutdownComplete = false
   private var lastCheckpoint = Date.distantPast
   private var recoveryCopy = false
   private var ownedCaptureRoot: URL?
@@ -92,6 +113,8 @@ enum ChatGPTManagementOperation: String {
     accountConnectionsEnabled: Bool = true
   ) {
     self.preferences = preferences
+    rememberedChatGPTModel = preferences.string(forKey: Self.chatGPTModelPreferenceKey)
+    selectedChatGPTModel = rememberedChatGPTModel ?? ""
     self.accountConnectionsEnabled = accountConnectionsEnabled
     self.historySecrets =
       historySecrets ?? KeychainSecretStore(service: PipAppIdentity.historyService)
@@ -240,8 +263,12 @@ enum ChatGPTManagementOperation: String {
   }
   private func reconcileChatGPT() {
     if !chatGPT.isAuthorizing { signInURL = nil }
-    if !chatGPT.models.contains(where: { $0.slug == selectedChatGPTModel }) {
-      selectedChatGPTModel = chatGPT.models.first?.slug ?? ""
+    let reconciledModel = Self.resolveChatGPTModel(
+      chatGPT.models, remembered: rememberedChatGPTModel)
+    if reconciledModel != selectedChatGPTModel {
+      reconcilingChatGPTModelSelection = true
+      selectedChatGPTModel = reconciledModel
+      reconcilingChatGPTModelSelection = false
     }
     if let account = chatGPT.activeAccount, account.isSignedIn, account.planEnabled,
       !preferences.bool(forKey: "chatGPTWelcome." + account.id)
@@ -255,6 +282,18 @@ enum ChatGPTManagementOperation: String {
     if let review = pendingCloudReview, review.sourceFingerprint != cloudSourceFingerprint() {
       pendingCloudReview = nil
     }
+  }
+
+  static func resolveChatGPTModel(_ models: [ChatGPTModel], remembered: String?) -> String {
+    guard !models.isEmpty else { return remembered ?? "" }
+    if let remembered, models.contains(where: { $0.slug == remembered }) { return remembered }
+    if let luna = models.first(where: {
+      $0.slug.localizedCaseInsensitiveContains("luna")
+        || $0.displayName.localizedCaseInsensitiveContains("luna")
+    }) {
+      return luna.slug
+    }
+    return models[0].slug
   }
   func dismissChatGPTWelcome() {
     if let id = welcomeAccountID, id == chatGPT.activeAccountID,
@@ -618,19 +657,70 @@ enum ChatGPTManagementOperation: String {
       preferences.set(true, forKey: "onboardingComplete")
     }
   }
+  /// Save any recoverable chat state while AppKit can still cancel termination.
+  /// A failed checkpoint leaves the model and its in-memory conversation usable.
+  @discardableResult func prepareForTermination() -> Bool {
+    if shutdownComplete { return true }
+    if terminationCheckpointPrepared { return true }
+    let qaRender = ProcessInfo.processInfo.arguments.contains("--qa-output")
+    let hasCurrentContent = !messages.isEmpty || !draft.isEmpty || recoveryCopy
+      || conversations.contains(where: { $0.id == currentID })
+
+    // A temporary session and an already-locked empty history are deliberate/no-op states.
+    // A prior failed save remains actionable even if historyAvailable was turned off by it.
+    if qaRender || (temporarySession && !failedHistoryCheckpoint)
+      || (!failedHistoryCheckpoint && (!storageAvailable || !historyAvailable || !hasCurrentContent))
+    {
+      terminationCheckpointPrepared = true
+      return true
+    }
+
+    stageCurrentConversation()
+    guard saveHistory(retryAfterFailure: failedHistoryCheckpoint) else {
+      error = "Quit was canceled because the latest chat could not be saved. Your text is still here. Fix the history issue, then choose Quit again to retry."
+      status = "Your latest chat is still in this window"
+      return false
+    }
+    terminationCheckpointPrepared = true
+    return true
+  }
+
   func shutdown() {
+    guard !shutdownComplete, prepareForTermination() else { return }
+    completeTerminationAfterCheckpoint()
+  }
+
+  /// Stop model-owned work only after a successful preflight, before AppKit accepts quit.
+  func completeTerminationAfterCheckpoint() {
+    guard terminationCheckpointPrepared, !shutdownComplete else { return }
+    stopOwnedWork()
+  }
+
+  /// AppKit cannot cancel from applicationWillTerminate; always stop owned work there.
+  func finishProcessTermination() {
+    guard !shutdownComplete else { return }
+    if !terminationCheckpointPrepared && !failedHistoryCheckpoint {
+      _ = prepareForTermination()
+    }
+    stopOwnedWork()
+  }
+
+  private func stopOwnedWork() {
+    guard !shutdownComplete else { return }
+    shutdownComplete = true
     operationID = UUID()
     operation?.cancel()
     models.pause()
     chatGPTManagementID = UUID()
     chatGPT.shutdown()
     runtime.terminateImmediately()
-    persist()
     if let ownedCaptureRoot {
       try? FileManager.default.removeItem(at: ownedCaptureRoot)
       self.ownedCaptureRoot = nil
     }
   }
+
+  var didCompleteShutdownForTesting: Bool { shutdownComplete }
   private func cloudInput() -> [RuntimeMessage] {
     let system = RuntimeMessage(
       role: "system",
@@ -775,14 +865,34 @@ enum ChatGPTManagementOperation: String {
     conversations.insert(chat, at: 0)
     saveHistory()
   }
-  private func saveHistory() {
-    guard historyAvailable, let store else { return }
-    do { try store.save(conversations) } catch {
+  private func stageCurrentConversation() {
+    guard !messages.isEmpty || !draft.isEmpty || recoveryCopy
+      || conversations.contains(where: { $0.id == currentID })
+    else { return }
+    var chat = SavedConversation(
+      id: currentID, messages: messages, draft: draft.isEmpty ? nil : draft)
+    if recoveryCopy { chat.title = "Recovered · " + chat.title }
+    conversations.removeAll { $0.id == currentID }
+    conversations.insert(chat, at: 0)
+  }
+  @discardableResult private func saveHistory(retryAfterFailure: Bool = false) -> Bool {
+    guard (historyAvailable || (retryAfterFailure && failedHistoryCheckpoint)), let store else {
+      return !failedHistoryCheckpoint
+    }
+    do {
+      try store.save(conversations)
+      historyAvailable = true
+      historyNotice = nil
+      failedHistoryCheckpoint = false
+      return true
+    } catch {
       historyAvailable = false
+      failedHistoryCheckpoint = true
       historyNotice =
         "Your chat could not be saved to encrypted history. Existing files are preserved. \(error.localizedDescription)"
       self.error =
         "History needs attention. Your current text is kept in memory; retry unlocking before leaving this chat."
+      return false
     }
   }
 }

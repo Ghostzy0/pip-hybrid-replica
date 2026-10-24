@@ -3,11 +3,11 @@
 This neutral baseline keeps the backend, workflow source, package definition, test fixtures and selected licensed model/runtime resources byte-identical to the custom public source checkpoint below. The replica repository exposes only the baseline test/build wrapper and baseline-only CI; it does not publish a Pip or enhanced release lane.
 
 - Shared custom source repository: [Ghostzy0/pip-hybrid](https://github.com/Ghostzy0/pip-hybrid)
-- Pinned public commit: `c4d4d318789bd9d6962d17098fde63779a78163e`
-- Source export manifest SHA-256: `7475ab7442b7f6a971e8951f773cf59d60423cc2fe346c4e31ad5aae4c603be1`
-- Shared implementation subset manifest SHA-256: `c22dd3f1953f0270962bde98f10cd42088542b42f91df00b7ca190e262e08290`
+- Pinned public commit: `c1c2e226a841d9767dd837a21e1975ecfed35fbc`
+- Source export manifest SHA-256: `9f048946608d3693f6ec08ad5f69775d894bca7adc99fa7b3ef935a4dfa48ac5`
+- Shared implementation subset manifest SHA-256: `d1c95d777c7b60a89091a18e8b9cae5268fff1d5855bf04d2e9e81f840c4ce82`
 
-The hashes below identify the exact included shared subset. The replica's `EXPORT-MANIFEST.json` has the complete file list and hashes for this repository's final export, plus the shared-subset hashes. Hash agreement proves byte identity for these files at export time; it does not prove runtime behavior, a clean build, or reference parity.
+The hashes below identify the exact path-identical shared subset. `scripts/build-mac-shared.sh` is separately checked as a byte-identical renamed copy of the pinned custom source's `scripts/build-mac.sh` (SHA-256 `fee9d930998c70c71d44a7c9c73704595c5d4d56441e36ca5bcb9f70a14ad41c`); because its output path differs, it is not counted in this path-identical subset. The replica's `EXPORT-MANIFEST.json` has the complete file list and hashes for this repository's final export, plus the shared-subset hashes. Hash agreement proves byte identity for these files at export time; it does not prove runtime behavior, a clean build, or reference parity.
 
 ```text
 d58997e3d1918c6f5a0b42e2987b698469db9859d6821d5a33a5297008364e7f  LICENSE
@@ -25,14 +25,14 @@ a0a3a94ce687376bd3a39b3acd3d7cb456b231a4bbb3de60d404c4e82da4261b  apps/mac/Sourc
 98384d35326477688032b6e689072c8c015d75e1cf6e147346779340e8e61029  apps/mac/Sources/LocalSwitchCore/ModelStore.swift
 11f608a5945abc7920f74ba21c9f3e39bc512d54c7dfcd1066fe12c73b984bd6  apps/mac/Sources/LocalSwitchCore/OAuthCallback.swift
 52f33fa856b9cd0bceb6305c1f16a25b7919f80e7fbbc3b7c2b958302900cacd  apps/mac/Sources/LocalSwitchCore/Runtime.swift
-5c17e40eb4429d1f52557b8649654dea84adf8c98149190d32d4103a27d307c2  apps/mac/Sources/LocalSwitchCore/SecretStore.swift
+a56add3d2c222172cfb13ce001e506844668a5a4b3860a1d69dfed2f0dbb0cb4  apps/mac/Sources/LocalSwitchCore/SecretStore.swift
 5f2fdba8ebf9ccc84ba7372b4518e4b0cc3c874a5d68260de0fb720ee3b50e48  apps/mac/Sources/LocalSwitchCore/SensitiveInfo.swift
-9000bc1dcde933a0cbb396f6ea17d61e5664d7cd8c04dfe5fbf0131c3a518a96  apps/mac/Sources/LocalSwitchMac/AppModel.swift
+4415beb234276332106a0116854ac16d63eb25aec82c130ea9650f04470b9ca6  apps/mac/Sources/LocalSwitchMac/AppModel.swift
 d97336224e5ca61d744b4d15397968789c04cbbd7aa81781fc87c7889be3ee90  apps/mac/Sources/LocalSwitchMac/ChatGPTAccountsView.swift
 1b74bc090ae0acfc098c9e968dec15ad090c749ee79bb654e1cca4e97101f716  apps/mac/Sources/LocalSwitchMac/ChatMessageRow.swift
 dc8989faa15058c06210dead3e8265042c2293a2ae9166021966c0b8132f67cf  apps/mac/Sources/LocalSwitchMac/CloudReviewView.swift
 78e5d287537f28b54566ee76344f257694f054dd0586af134629d39f5cf57cbd  apps/mac/Sources/LocalSwitchMac/DeviceView.swift
-623343bec01625cf7d7b47587b280ae6440039d5ce3339d4acb35a7438e0168f  apps/mac/Sources/LocalSwitchMac/LocalSwitchApp.swift
+ef02b0c24b892744865eeb8d2c143a49c11bc28f0565384e8702d6f062af348b  apps/mac/Sources/LocalSwitchMac/LocalSwitchApp.swift
 b76a9c2f52f3f1c548bb3a9e668b1cf7dc42a232225365e9b69c9aa4756171f9  apps/mac/Sources/LocalSwitchMac/ModelLibraryView.swift
 8d978c97a2f3ad0b938327878ec660e5ef041880093cbe731cfe0fe7fe3df39a  apps/mac/Sources/LocalSwitchMac/OnboardingView.swift
 1116822f4a663827f4925e125750d259f26c4829f54df8b3b0beaa761c517943  apps/mac/Sources/LocalSwitchMac/PipGeometry.swift
@@ -43,7 +43,7 @@ af8a3f29385f0af41faaeb3b81411d9346bdb1a360274c338b53979b55c2561a  apps/mac/Sourc
 27b36aff7bc9dcb421b1e731b457eb531843f0271acf344a646f7d63cb268601  apps/mac/Sources/LocalSwitchMac/Theme.swift
 1a3e871bf4be9aaf5fc924693321612e3106b687e1b9a8f1b6217899bf857851  apps/mac/Sources/LocalSwitchMac/Typography.swift
 813b1cc0e8b71e2af479ed950d7aaf824ef6d83aa68bdb56f875c451ecf0f55b  apps/mac/Sources/LocalSwitchMac/WorkspaceView.swift
-ebc8fc340626588ff4a18b76f0ffc0565e9505198acc2f5561921f2340ac21da  apps/mac/Sources/LocalSwitchSmoke/Smoke.swift
+bdfe80ec9b8a1268037c236a022819c396037170088afbf2348d06e36514ea6a  apps/mac/Sources/LocalSwitchSmoke/Smoke.swift
 043a15ef2195b9405b3f4bbb7d017b193f34b9afddabf01446d4a5ccd01fe5bb  apps/mac/Tests/LocalSwitchCoreTests/AppIdentityTests.swift
 431f5e687e0f999e8e648cc4cca05ffd1e57979d19ffacade005fae8e9abcbbe  apps/mac/Tests/LocalSwitchCoreTests/ChatGPTAuthTests.swift
 efea2fe955dac4aac6292d8ce18147953d52c343d1335e2f58ef7f8d599ba75f  apps/mac/Tests/LocalSwitchCoreTests/ConversationToolsTests.swift
@@ -51,12 +51,11 @@ a61bcee03afcdcfe81cf20f2b551ffba76624a81d50b6fe533cbf95c0a0a2142  apps/mac/Tests
 bd258c55726fa5835279d7817549a56b354850afb19abb14512d183f7252c4dc  apps/mac/Tests/LocalSwitchCoreTests/HardwareDownloadTests.swift
 c6d74152bdc31a3b2329e6eb9f3b84d30099a54cef780db0c095406169606f56  apps/mac/Tests/LocalSwitchCoreTests/RuntimeCancellationTests.swift
 0cd84f99a1207adb9ded4c5330ef7338d98eb1ae3426539e231ae27ece3b7453  apps/mac/Tests/LocalSwitchCoreTests/RuntimeHistoryTests.swift
-414e46ad3bd27de6c7298fdc982de958c60ec312941c06e1c9e10a022e128e71  apps/mac/Tests/LocalSwitchCoreTests/SecretStorePolicyTests.swift
+ae4fa4ebe5364e081742af708e378dfb501c8084c1e663b1eefd77e47197930b  apps/mac/Tests/LocalSwitchCoreTests/SecretStorePolicyTests.swift
 bf1d0afbe57c043f0c71d85a064c9f355e48aac28dd8572a6d1b7a9255d08ae6  apps/mac/Tests/LocalSwitchCoreTests/SensitiveInfoTests.swift
-4b385e27d7ce5833c260410d9fd9ad9d6264c5e9d2a841b88c2dbf0788dbe8d2  apps/mac/Tests/LocalSwitchMacTests/AppModelTests.swift
+c6627d109d6d97319a032b3e71bcba1e8115d26cbc0e337abc99cef85e7adf83  apps/mac/Tests/LocalSwitchMacTests/AppModelTests.swift
 bf9ae06b71ea707aa4c77dc7a69c155eac17adbe05057ee5dd622f6c3f698714  apps/mac/Tests/LocalSwitchMacTests/CloudReviewTests.swift
 a0ee877058d625731dafa323982242fab031cfd20f6e4cc96dfdb17059485f57  docs/engineering/mac-model-catalogue.json
-fee9d930998c70c71d44a7c9c73704595c5d4d56441e36ca5bcb9f70a14ad41c  scripts/build-mac-shared.sh
 f905357765c1a5298fdb3837e3e8f5669f8b4665cbcd4cfabb73ec944817cefb  scripts/prepare-mac-runtime.py
 ```
 

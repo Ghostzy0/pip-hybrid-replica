@@ -27,27 +27,78 @@ public struct SecretStoreError: LocalizedError {
   public init(status: OSStatus) { self.status = status }
 }
 
+enum SecretStoreInteractionPolicyError: LocalizedError {
+  case readFailed(OSStatus)
+  case setFailed(OSStatus)
+  case restoreFailed(OSStatus, fallbackStatus: OSStatus?)
+  case setAndRestoreFailed(setStatus: OSStatus, restoreStatus: OSStatus, fallbackStatus: OSStatus?)
+  case operationAndRestoreFailed(operation: Error, status: OSStatus)
+  case stateUnknown
+
+  var errorDescription: String? {
+    switch self {
+    case .readFailed(let status): return "Could not read the Keychain interaction policy (code \(status))."
+    case .setFailed(let status): return "Could not set the Keychain interaction policy (code \(status))."
+    case .restoreFailed(let status, let fallbackStatus):
+      let fallback = fallbackStatus.map { " The fail-closed reset also failed (code \($0))." } ?? " A fail-closed reset was applied."
+      return "Could not restore the Keychain interaction policy (code \(status)).\(fallback)"
+    case .setAndRestoreFailed(let setStatus, let restoreStatus, let fallbackStatus):
+      let fallback = fallbackStatus.map { " The fail-closed reset also failed (code \($0))." } ?? " A fail-closed reset was applied."
+      return "Could not set the Keychain interaction policy (code \(setStatus)) or restore its prior value (code \(restoreStatus)).\(fallback)"
+    case .operationAndRestoreFailed(let operation, let status):
+      return "The protected operation failed (\(operation.localizedDescription)) and its Keychain interaction policy could not be restored (code \(status))."
+    case .stateUnknown:
+      return "Keychain interaction state is unknown after an earlier restore failure. Restart the app before using protected storage."
+    }
+  }
+}
+
+protocol KeychainInteractionPolicyBackend {
+  func get(_ allowed: inout DarwinBoolean) -> OSStatus
+  func set(_ allowed: Bool) -> OSStatus
+}
+
+private struct SystemKeychainInteractionPolicyBackend: KeychainInteractionPolicyBackend {
+  func get(_ allowed: inout DarwinBoolean) -> OSStatus {
+    SecKeychainGetUserInteractionAllowed(&allowed)
+  }
+  func set(_ allowed: Bool) -> OSStatus { SecKeychainSetUserInteractionAllowed(allowed) }
+}
+
 /// The ad-hoc developer app targets the Mac login Keychain (non-synchronising, app ACL).
 /// Data-protection Keychain requires a provisioned access group on macOS; do not imply that
 /// its WhenUnlockedThisDeviceOnly guarantee applies to the login-Keychain development path.
 public final class KeychainSecretStore: SecretStore, @unchecked Sendable {
   private static let interactionLock = NSRecursiveLock()
+  private static var interactionPolicyStateUnknown = false
   private let service: String
   private let allowInteraction: Bool
   private let useDataProtectionKeychain: Bool
-  public init(
+  private let interactionPolicyBackend: any KeychainInteractionPolicyBackend
+  public convenience init(
     service: String = PipAppIdentity.secretsService, allowInteraction: Bool = false,
     useDataProtectionKeychain: Bool = false
+  ) {
+    self.init(
+      service: service, allowInteraction: allowInteraction,
+      useDataProtectionKeychain: useDataProtectionKeychain,
+      interactionPolicyBackend: SystemKeychainInteractionPolicyBackend())
+  }
+  init(
+    service: String, allowInteraction: Bool, useDataProtectionKeychain: Bool,
+    interactionPolicyBackend: any KeychainInteractionPolicyBackend
   ) {
     self.service = service
     self.allowInteraction = allowInteraction
     self.useDataProtectionKeychain = useDataProtectionKeychain
+    self.interactionPolicyBackend = interactionPolicyBackend
   }
   /// Keep the same service/keychain when a user explicitly requests an unlock.
   public func withUserInteraction(_ allowed: Bool) -> KeychainSecretStore {
     KeychainSecretStore(
       service: service, allowInteraction: allowed,
-      useDataProtectionKeychain: useDataProtectionKeychain)
+      useDataProtectionKeychain: useDataProtectionKeychain,
+      interactionPolicyBackend: interactionPolicyBackend)
   }
   private func query(_ key: String) -> [String: Any] {
     var value: [String: Any] = [
@@ -72,13 +123,47 @@ public final class KeychainSecretStore: SecretStore, @unchecked Sendable {
     guard !useDataProtectionKeychain else { return try body() }
     Self.interactionLock.lock()
     defer { Self.interactionLock.unlock() }
+    guard !Self.interactionPolicyStateUnknown else {
+      throw SecretStoreInteractionPolicyError.stateUnknown
+    }
     var previous: DarwinBoolean = false
-    let fetched = SecKeychainGetUserInteractionAllowed(&previous)
-    guard fetched == errSecSuccess else { throw SecretStoreError(status: fetched) }
-    let changed = SecKeychainSetUserInteractionAllowed(allowInteraction)
-    guard changed == errSecSuccess else { throw SecretStoreError(status: changed) }
-    defer { SecKeychainSetUserInteractionAllowed(previous.boolValue) }
-    return try body()
+    let fetched = interactionPolicyBackend.get(&previous)
+    guard fetched == errSecSuccess else {
+      throw SecretStoreInteractionPolicyError.readFailed(fetched)
+    }
+    let changed = interactionPolicyBackend.set(allowInteraction)
+    if changed != errSecSuccess {
+      let restored = interactionPolicyBackend.set(previous.boolValue)
+      if restored != errSecSuccess {
+        let fallback = interactionPolicyBackend.set(false)
+        if fallback != errSecSuccess { Self.interactionPolicyStateUnknown = true }
+        throw SecretStoreInteractionPolicyError.setAndRestoreFailed(
+          setStatus: changed, restoreStatus: restored,
+          fallbackStatus: fallback == errSecSuccess ? nil : fallback)
+      }
+      throw SecretStoreInteractionPolicyError.setFailed(changed)
+    }
+
+    let result: Result<T, Error>
+    do { result = .success(try body()) } catch { result = .failure(error) }
+    let restored = interactionPolicyBackend.set(previous.boolValue)
+    guard restored == errSecSuccess else {
+      let fallback = interactionPolicyBackend.set(false)
+      if fallback != errSecSuccess { Self.interactionPolicyStateUnknown = true }
+      if case .failure(let operation) = result {
+        throw SecretStoreInteractionPolicyError.operationAndRestoreFailed(
+          operation: operation, status: restored)
+      }
+      throw SecretStoreInteractionPolicyError.restoreFailed(
+        restored, fallbackStatus: fallback == errSecSuccess ? nil : fallback)
+    }
+    return try result.get()
+  }
+
+  static func resetInteractionPolicyStateForTesting() {
+    interactionLock.lock()
+    interactionPolicyStateUnknown = false
+    interactionLock.unlock()
   }
   public func read(_ key: String) throws -> Data? {
     try withInteractionPolicy { try readProtected(key) }
