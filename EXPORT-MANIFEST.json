@@ -3,9 +3,9 @@
   "intendedRepository": "Ghostzy0/pip-hybrid-replica",
   "scope": "One neutral baseline source export; experimental partial behavioral implementation; no faithful 1:1, build, runtime, or release acceptance implied.",
   "sharedCoreSourceRepository": "Ghostzy0/pip-hybrid",
-  "sharedCoreSourceCommit": "c1c2e226a841d9767dd837a21e1975ecfed35fbc",
-  "customSourceExportManifestSha256": "9f048946608d3693f6ec08ad5f69775d894bca7adc99fa7b3ef935a4dfa48ac5",
-  "sharedCoreManifestSha256": "d1c95d777c7b60a89091a18e8b9cae5268fff1d5855bf04d2e9e81f840c4ce82",
+  "sharedCoreSourceCommit": "b4a4198a4fb65394f5d857fe5bf99f1ed9ce59fb",
+  "customSourceExportManifestSha256": "d29dfc6beae174f8c7d298c5c0184ddabb5932bb12e3701414f3695a58ba71d2",
+  "sharedCoreManifestSha256": "4324283161b504b684ff3e884f06696d2f4938db48b994b36c2860c958cc7c16",
   "sharedCoreFiles": [
     {
       "path": "LICENSE",
@@ -154,8 +154,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/RootView.swift",
-      "bytes": 19039,
-      "sha256": "3c5359af7d0eb3c09e70d7124038bf25e634deb6abbb05d6889d3c9a65b6c34a"
+      "bytes": 19142,
+      "sha256": "5c763b10c39fd545d8938c9e2bcd6085705d6cc9f05dfb07cc32af0755dc98c8"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/Theme.swift",
@@ -169,8 +169,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/WorkspaceView.swift",
-      "bytes": 20032,
-      "sha256": "813b1cc0e8b71e2af479ed950d7aaf824ef6d83aa68bdb56f875c451ecf0f55b"
+      "bytes": 20087,
+      "sha256": "f82eca507153f84b57211aed5804615d873ce6a90cb91a9600ca1dcdb2742ec6"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchSmoke/Smoke.swift",
@@ -276,8 +276,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "bytes": 1578,
-      "sha256": "4c0aff50ba3b597fc0fd21136b5869bf6429760cca0aeb9d65cae86383c634b3"
+      "bytes": 1614,
+      "sha256": "1c6b2f024e2fbb991e09671ccea215e1d815c92aee5580218fd93363b4fbf97c"
     },
     {
       "path": "CONTRIBUTING.md",
@@ -446,8 +446,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/RootView.swift",
-      "bytes": 19039,
-      "sha256": "3c5359af7d0eb3c09e70d7124038bf25e634deb6abbb05d6889d3c9a65b6c34a"
+      "bytes": 19142,
+      "sha256": "5c763b10c39fd545d8938c9e2bcd6085705d6cc9f05dfb07cc32af0755dc98c8"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/Theme.swift",
@@ -461,8 +461,8 @@
     },
     {
       "path": "apps/mac/Sources/LocalSwitchMac/WorkspaceView.swift",
-      "bytes": 20032,
-      "sha256": "813b1cc0e8b71e2af479ed950d7aaf824ef6d83aa68bdb56f875c451ecf0f55b"
+      "bytes": 20087,
+      "sha256": "f82eca507153f84b57211aed5804615d873ce6a90cb91a9600ca1dcdb2742ec6"
     },
     {
       "path": "apps/mac/Sources/LocalSwitchSmoke/Smoke.swift",
@@ -561,13 +561,13 @@
     },
     {
       "path": "docs/SHARED-CORE.md",
-      "bytes": 7216,
-      "sha256": "8d7fc8d5a199407addd645dbf62186b21eb67a365901b926a7b7bc0a8a4a2e1a"
+      "bytes": 7433,
+      "sha256": "0d01ad8bb379307fe68bdd5c56cbf31854ee6bdc28caa25b3b6c42e119f03f7e"
     },
     {
       "path": "docs/TESTING.md",
-      "bytes": 4933,
-      "sha256": "c788065b8c8e1b649c622a22e925b007ade5b34512b9d19ab5e406699e78b4b5"
+      "bytes": 4791,
+      "sha256": "b0cd7f12244f67bcbc14c9c2a172494910a89140b919b4f12895a857614e04ae"
     },
     {
       "path": "docs/engineering/mac-model-catalogue.json",
