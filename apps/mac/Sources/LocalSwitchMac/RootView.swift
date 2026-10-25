@@ -427,8 +427,11 @@ struct RootView: View {
     let model = app
     exportPanel = panel
     panel.begin { [weak panel, weak model] response in
-      defer { exportPanel = nil }
-      guard response == .OK, let destination = panel?.url, let model else { return }
+      guard let panel, exportPanel === panel else { return }
+      defer {
+        if exportPanel === panel { exportPanel = nil }
+      }
+      guard response == .OK, let destination = panel.url, let model else { return }
       do {
         try Data(snapshot.utf8).write(to: destination, options: .atomic)
         model.status = "Markdown exported"

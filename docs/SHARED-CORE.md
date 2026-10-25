@@ -3,11 +3,11 @@
 This neutral baseline keeps the backend, workflow source, package definition, test fixtures and selected licensed model/runtime resources byte-identical to the custom public source checkpoint below. The replica repository exposes only the baseline test/build wrapper and baseline-only CI; it does not publish a Pip or enhanced release lane.
 
 - Shared custom source repository: [Ghostzy0/pip-hybrid](https://github.com/Ghostzy0/pip-hybrid)
-- Pinned public commit: `c1c2e226a841d9767dd837a21e1975ecfed35fbc`
-- Source export manifest SHA-256: `9f048946608d3693f6ec08ad5f69775d894bca7adc99fa7b3ef935a4dfa48ac5`
-- Shared implementation subset manifest SHA-256: `d1c95d777c7b60a89091a18e8b9cae5268fff1d5855bf04d2e9e81f840c4ce82`
+- Pinned public commit: `b4a4198a4fb65394f5d857fe5bf99f1ed9ce59fb`
+- Source export manifest SHA-256: `d29dfc6beae174f8c7d298c5c0184ddabb5932bb12e3701414f3695a58ba71d2`
+- Shared implementation subset manifest SHA-256: `4324283161b504b684ff3e884f06696d2f4938db48b994b36c2860c958cc7c16`
 
-The hashes below identify the exact path-identical shared subset. `scripts/build-mac-shared.sh` is separately checked as a byte-identical renamed copy of the pinned custom source's `scripts/build-mac.sh` (SHA-256 `fee9d930998c70c71d44a7c9c73704595c5d4d56441e36ca5bcb9f70a14ad41c`); because its output path differs, it is not counted in this path-identical subset. The replica's `EXPORT-MANIFEST.json` has the complete file list and hashes for this repository's final export, plus the shared-subset hashes. Hash agreement proves byte identity for these files at export time; it does not prove runtime behavior, a clean build, or reference parity.
+The hashes below identify the exact path-identical shared subset. `scripts/build-mac-shared.sh` is separately checked as a byte-identical renamed copy of the pinned custom source's `scripts/build-mac.sh` (SHA-256 `fee9d930998c70c71d44a7c9c73704595c5d4d56441e36ca5bcb9f70a14ad41c`); because its output path differs, it is not counted in this path-identical subset. Although the shared source contains the enhanced export-panel callback guard, this repository exposes only the baseline wrapper and baseline CI; enhanced export controls are unavailable and no Plus lane is published. The replica's `EXPORT-MANIFEST.json` has the complete file list and hashes for this repository's final export, plus the shared-subset hashes. Hash agreement proves byte identity for these files at export time; it does not prove runtime behavior, a clean build, or reference parity.
 
 ```text
 d58997e3d1918c6f5a0b42e2987b698469db9859d6821d5a33a5297008364e7f  LICENSE
@@ -39,10 +39,10 @@ b76a9c2f52f3f1c548bb3a9e668b1cf7dc42a232225365e9b69c9aa4756171f9  apps/mac/Sourc
 af8a3f29385f0af41faaeb3b81411d9346bdb1a360274c338b53979b55c2561a  apps/mac/Sources/LocalSwitchMac/PipMotionQA.swift
 5e90e777644df554ba683302d878acd267a16678977417896703d8b70d503e2c  apps/mac/Sources/LocalSwitchMac/PipView.swift
 112026ae98dde213096484ffa464db92632880c3add0654724bcb34bc8b529fb  apps/mac/Sources/LocalSwitchMac/PromptEditor.swift
-3c5359af7d0eb3c09e70d7124038bf25e634deb6abbb05d6889d3c9a65b6c34a  apps/mac/Sources/LocalSwitchMac/RootView.swift
+5c763b10c39fd545d8938c9e2bcd6085705d6cc9f05dfb07cc32af0755dc98c8  apps/mac/Sources/LocalSwitchMac/RootView.swift
 27b36aff7bc9dcb421b1e731b457eb531843f0271acf344a646f7d63cb268601  apps/mac/Sources/LocalSwitchMac/Theme.swift
 1a3e871bf4be9aaf5fc924693321612e3106b687e1b9a8f1b6217899bf857851  apps/mac/Sources/LocalSwitchMac/Typography.swift
-813b1cc0e8b71e2af479ed950d7aaf824ef6d83aa68bdb56f875c451ecf0f55b  apps/mac/Sources/LocalSwitchMac/WorkspaceView.swift
+f82eca507153f84b57211aed5804615d873ce6a90cb91a9600ca1dcdb2742ec6  apps/mac/Sources/LocalSwitchMac/WorkspaceView.swift
 bdfe80ec9b8a1268037c236a022819c396037170088afbf2348d06e36514ea6a  apps/mac/Sources/LocalSwitchSmoke/Smoke.swift
 043a15ef2195b9405b3f4bbb7d017b193f34b9afddabf01446d4a5ccd01fe5bb  apps/mac/Tests/LocalSwitchCoreTests/AppIdentityTests.swift
 431f5e687e0f999e8e648cc4cca05ffd1e57979d19ffacade005fae8e9abcbbe  apps/mac/Tests/LocalSwitchCoreTests/ChatGPTAuthTests.swift

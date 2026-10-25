@@ -1,12 +1,11 @@
 # Changes
 
-## Shared reliability source update · 24 October 2026 · qualification pending
+## Shared-source refresh · 25 October 2026 · replica qualification pending
 
-- Shared implementation now keeps ordinary quit available for retry or recovery when a final history save fails, instead of discarding the latest in-memory edit.
-- Protected-history access policy checks failures and defaults to fail-closed behavior; this is source behavior, not proof that a native Keychain prompt cannot occur.
-- The selected ChatGPT model is remembered and restored when still available; otherwise a listed Luna model is preferred before the first available fallback.
+- The workspace transcript now renders only user and assistant messages; the display filter does not alter saved message arrays.
+- The shared custom-source tree includes a guard against late completions from dismissed or replaced export panels. Enhanced export remains unavailable in this baseline-only repository and is not advertised here.
 
-These source changes are carried into the neutral replica export from the independently reviewed custom source candidate, but the replica remains a partial, source-only implementation. The replica's own baseline CI/package/native evidence for this update is pending. No Perplexity workflow parity, provider lifecycle, owner-Keychain behavior, local-model inference, or public binary acceptance is implied. See [TESTING](docs/TESTING.md) for exact shared-source provenance and evidence boundaries.
+The neutral candidate pins the reviewed custom public source at `b4a4198a4fb65394f5d857fe5bf99f1ed9ce59fb` and records the exact 47 path-identical shared files plus the separately verified renamed build helper. All four custom CI variants and manual source checks passed for that custom candidate; those results do not qualify this replica. Its own independent review, baseline CI/package and native acceptance remain pending. No Perplexity workflow parity, provider lifecycle, owner-Keychain behavior, local-model inference or public binary acceptance is implied. See [TESTING](docs/TESTING.md) and [SHARED-CORE](docs/SHARED-CORE.md) for exact provenance and evidence boundaries.
 
 ## 0.1.0 · experimental baseline
 

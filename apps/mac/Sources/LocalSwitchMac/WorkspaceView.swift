@@ -371,7 +371,7 @@ struct WorkspaceView: View {
     ScrollViewReader { proxy in
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 27) {
-          ForEach(app.messages) { message in
+          ForEach(app.messages.filter { $0.role == "user" || $0.role == "assistant" }) { message in
             ChatMessageRow(
               message: message,
               completionID: app.messages.last?.id == message.id && message.state == "complete"
